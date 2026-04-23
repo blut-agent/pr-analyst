@@ -1,7 +1,7 @@
 ---
 name: pr-analyst
 description: Study merged PRs to learn what works in each repository. Analyze patterns in accepted contributions to improve future PR success rates.
-version: 1.0.0
+version: 1.1.0
 author: BlutAgent
 license: MIT
 metadata:
@@ -335,6 +335,28 @@ cronjob(
     deliver='origin'
 )
 ```
+
+
+## Security Notes
+
+### Input Validation
+- File paths restricted to `/tmp/` directory
+- JSON files only (`.json` extension required)
+- JSON parse errors handled gracefully
+
+### API Usage
+- Uses `gh` CLI for authentication
+- Read-only operations on public repos
+
+### Changelog
+
+### v1.1.0 (Security Hardening)
+- Added file path validation (restricted to /tmp/)
+- Added JSON parse error handling
+- Added Security Notes section
+
+### v1.0.0
+- Initial release
 
 ## Anti-Patterns
 
