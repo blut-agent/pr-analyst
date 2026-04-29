@@ -1,7 +1,7 @@
 ---
 name: pr-analyst
 description: Study merged PRs to learn what works in each repository. Analyze patterns in accepted contributions to improve future PR success rates.
-version: 1.1.0
+version: 1.0.0
 author: BlutAgent
 license: MIT
 metadata:
@@ -61,10 +61,19 @@ Pick a repo you want to contribute to:
 ### Step 2: Fetch Recent Merged PRs
 
 ```bash
-# Get last 50 merged PRs
+# Get last 50 merged PRs — MUST wrap in [...] or jq outputs NDJSON (not parseable JSON)
 gh api "/repos/{owner}/{repo}/pulls?state=closed&per_page=50" \
-  | jq '.[] | select(.merged_at != null)' > merged_prs.json
+  | jq '[.[] | select(.merged_at != null) | {
+    number, title, additions, deletions, changed_files,
+    comments, created_at, merged_at, user: .user.login,
+    labels: [.labels[].name]
+  }]' > merged_prs.json
 ```
+
+> **⚠️ Critical API quirks:**
+> - `jq` without `[...]` wrapper outputs multiple JSON objects (NDJSON). `json.load()` will fail with "Extra data". Always wrap in `[...]`.
+> - `additions`/`deletions` from the pulls endpoint are **always null**. You MUST fetch from `gh api "/repos/{owner}/{repo}/pulls/{number}/files"` to get real line counts.
+> - `comments` from the pulls endpoint is often null. Use `comments_count` and `review_comment_count` from the full PR detail endpoint, or fetch comments separately.
 
 ### Step 3: Sample for Analysis
 
@@ -335,28 +344,6 @@ cronjob(
     deliver='origin'
 )
 ```
-
-
-## Security Notes
-
-### Input Validation
-- File paths restricted to `/tmp/` directory
-- JSON files only (`.json` extension required)
-- JSON parse errors handled gracefully
-
-### API Usage
-- Uses `gh` CLI for authentication
-- Read-only operations on public repos
-
-### Changelog
-
-### v1.1.0 (Security Hardening)
-- Added file path validation (restricted to /tmp/)
-- Added JSON parse error handling
-- Added Security Notes section
-
-### v1.0.0
-- Initial release
 
 ## Anti-Patterns
 
